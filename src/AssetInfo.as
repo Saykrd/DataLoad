@@ -1,4 +1,4 @@
-package load
+package 
 {
 	import flash.system.ApplicationDomain;
 
