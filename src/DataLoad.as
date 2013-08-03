@@ -23,15 +23,29 @@ package
 		private static var _assetList:Dictionary;
 		private static var _assetBank:Dictionary;
 		
-		
+		/**
+		 * Initial startup call
+		 * @param	assetListURL - URL of the xml manifest containing all assets that can be loaded
+		 * @param	callback - onComplete callback. Executes when the manifest xml has succesfully loaded
+		 */
 		public static function startup(assetListURL:String, callback:Function):void{
 			loadAssetsXML(assetListURL, callback);
 		}
 		
+		/**
+		 * Returns an AssetInfo object containing metadata of the asset listed in the manifest
+		 * @param	id
+		 * @return
+		 */
 		private static function getAssetInfoByID(id:String):AssetInfo{
 			return _assetList[id];
 		}
 		
+		/**
+		 * Returns a list of assetInfo by specific asset type
+		 * @param	type - type of asset (display object or text?) Constants set in LoaderInfo
+		 * @return
+		 */
 		private static function getAssetInfoByType(type:String):Vector.<AssetInfo>{
 			var assets:Vector.<AssetInfo> = new Vector.<AssetInfo>;
 			var asset:AssetInfo;
@@ -45,6 +59,11 @@ package
 			return assets;
 		}
 		
+		/**
+		 * Returns an assetInfo list requested in the given XML
+		 * @param	xml
+		 * @return
+		 */
 		private static function getAssetsFromXML(xml:XML):Vector.<AssetInfo>{
 			var xmlList:XMLList = xml..@assetID;
 			var assets:Vector.<AssetInfo> = new Vector.<AssetInfo>;
@@ -58,7 +77,11 @@ package
 			return assets;
 		}
 		
-		
+		/**
+		 * Loads the manifest XML containing all assetInfo
+		 * @param	url
+		 * @param	callback
+		 */
 		public static function loadAssetsXML(url:String, callback:Function = null):void{
 			var asset:AssetInfo;
 			var list:XML;
@@ -99,7 +122,14 @@ package
 			}
 		}
 		
-		
+		/**
+		 * Loads an asset.
+		 * @param	assetID - Assets id as listed in manifest
+		 * @param	onComplete - Successful load callback
+		 * @param	onProgress - Progress tracking
+		 * @param	onError    - Error handler
+		 * @return LoadObject - Tracker object that reflects the status of the load
+		 */
 		public static function loadAsset(assetID:String, onComplete:Function  = null, onProgress:Function = null, onError:Function = null):LoadObject{
 			if(!_assetList[assetID]) throw new Error("[DataLoadError] This asset is not defined: " + assetID);
 			var loadObj:LoadObject = new LoadObject(onComplete, onProgress, onError);
@@ -109,7 +139,17 @@ package
 			return loadObj;
 		}
 		
+		
+		/**
+		 * Loads multiple assets sequentially.
+		 * @param	assets - List of all assetInfo to load
+		 * @param	onComplete
+		 * @param	onProgress
+		 * @param	onError
+		 * @return LoadObject - Tracker object that reflects the status of the load
+		 */
 		public static function loadAssets(assets:Vector.<AssetInfo>, onComplete:Function = null, onProgress:Function = null, onError:Function = null):LoadObject{
+			// TODO: Make "assets" ID based.
 			var iter:int = 0;
 			var loadObj = new LoadObject(checkNextAsset, onProgress, onError);
 			trace("[DataLoad] Starting batch load of " + assets.length + " items...");
@@ -129,11 +169,26 @@ package
 			}
 		}
 		
+		
+		/**
+		 * Loads all assets listed in the given XML
+		 * @param	xml
+		 * @param	onComplete
+		 * @param	onProgress
+		 * @param	onError
+		 * @return LoadObject - Tracker object that reflects the status of the load
+		 */
 		public static function loadAssetsFromXML(xml:XML, onComplete:Function = null, onProgress:Function = null, onError:Function = null):LoadObject{
 			var assets:Vector.<AssetInfo> = getAssetsFromXML(xml);
 			return loadAssets(assets, onComplete, onProgress, onError);
 		}
 		
+		
+		/**
+		 * Attempts to load an asset
+		 * @param	asset
+		 * @param	loadObj
+		 */
 		private static function load(asset:AssetInfo, loadObj:LoadObject):void{
 			var loader:Loader;
 			var urlLoader:URLLoader;
@@ -186,7 +241,17 @@ package
 			}
 		}
 		
+		//====================================================================
 		
+		// ASSET INTERFACE
+		
+		//====================================================================
+		
+		/**
+		 * Returns the requested display object
+		 * @param	assetID
+		 * @return
+		 */
 		public static function getImage(assetID:String):DisplayObject{
 			validateAsset(assetID, "image");
 			
@@ -203,6 +268,11 @@ package
 			return disp;
 		}
 		
+		/**
+		 * Returns a bitmap object for the given assetID
+		 * @param	assetID
+		 * @return
+		 */
 		public static function getBitmap(assetID:String):Bitmap{
 			validateAsset(assetID, "image");
 			
@@ -216,6 +286,11 @@ package
 			return bmp;
 		}
 		
+		/**
+		 * Returns the bitmapData for the given assetID
+		 * @param	assetID
+		 * @return
+		 */
 		public static function getImageData(assetID:String):BitmapData{
 			validateAsset(assetID, "image");
 			
@@ -226,12 +301,23 @@ package
 			return data;
 		}
 		
+		/**
+		 * Returns a loaded SWF
+		 * @param	assetID
+		 * @return
+		 */
 		public static function getSwf(assetID:String):*{
 			validateAsset(assetID, "swf");
 			var swf:*      = _assetBank[assetID];
 			return swf;
 		}
 		
+		/**
+		 * Returns exported class definitions contained within a given swf
+		 * @param	assetID
+		 * @param	linkageName
+		 * @return
+		 */
 		public static function getClass(assetID:String, linkageName:String):Class{
 			validateAsset(assetID, "swf");
 			var asset:AssetInfo = _assetList[assetID];
@@ -240,11 +326,21 @@ package
 			return cls;
 		}
 		
+		/**
+		 * Returns a loaded XML
+		 * @param	assetID
+		 * @return
+		 */
 		public static function getXML(assetID:String):XML{
 			validateAsset(assetID, "xml");
 			return XML(_assetBank[assetID]);
 		}
 		
+		/**
+		 * Validates whether or not the asset is available to be accessed
+		 * @param	assetID
+		 * @param	category
+		 */
 		private static function validateAsset(assetID:String, category:String):void{
 			if(!_assetList[assetID])throw new Error("[DataLoadError] This asset is not defined: " + assetID);
 			if(!_assetBank[assetID])throw new Error("[DataLoadError] AssetID: " + assetID + " has not been loaded yet");
