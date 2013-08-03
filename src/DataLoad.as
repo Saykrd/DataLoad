@@ -13,9 +13,13 @@ package
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
 	
+	/**
+	 * Loader class for managing asset storage
+	 */
 	public class DataLoad
 	{
-		
+		//TODO: Make this class not static :/
+		//TODO: Make JSON Compatible
 		private static var _assetList:Dictionary;
 		private static var _assetBank:Dictionary;
 		
