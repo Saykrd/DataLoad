@@ -23,6 +23,7 @@ package
 		private static var _assetList:Dictionary;
 		private static var _assetBank:Dictionary;
 		
+		
 		/**
 		 * Initial startup call
 		 * @param	assetListURL - URL of the xml manifest containing all assets that can be loaded
@@ -183,6 +184,21 @@ package
 			return loadAssets(assets, onComplete, onProgress, onError);
 		}
 		
+		public static function loadFile(url:String, type:String, category:String, uid:String, onComplete:Function = null, onProgress:Function = null , onError:Function = null):LoadObject {
+			if (_assetList[uid]) {
+				loadAsset(uid, onComplete, onProgress, onError);
+				return;
+			}
+			
+			var assetInfo:AssetInfo = new AssetInfo
+			assetInfo.url = url;
+			assetInfo.type = type;
+			assetInfo.category = category;
+			assetInfo.id = uid;
+			_assetList[id] = assetInfo;
+			return loadAsset(uid, onComplete, onProgress, onError);
+		}
+		
 		
 		/**
 		 * Attempts to load an asset
@@ -196,7 +212,7 @@ package
 			
 			
 			trace("[DataLoad] Loading asset '" + asset.id +  "' from: " + asset.url);
-			if(asset.type == LoadObject.TYPE_DISPLAY){
+			if(asset.type == DataType.DISPLAY){
 				loader = new Loader;
 				
 				loader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, loadObj.progress);
@@ -235,8 +251,8 @@ package
 				}
 				
 				loadObj.assetLoaded();
-				asset.appDomain = asset.type == LoadObject.TYPE_DISPLAY ?  e.currentTarget.applicationDomain : null;
-				_assetBank[asset.id] = asset.type == LoadObject.TYPE_DISPLAY ? e.currentTarget.content : e.currentTarget.data;
+				asset.appDomain = asset.type == DataType.DISPLAY ?  e.currentTarget.applicationDomain : null;
+				_assetBank[asset.id] = asset.type == DataType.DISPLAY ? e.currentTarget.content : e.currentTarget.data;
 				loadObj.complete(e);
 			}
 		}
@@ -344,7 +360,7 @@ package
 		private static function validateAsset(assetID:String, category:String):void{
 			if(!_assetList[assetID])throw new Error("[DataLoadError] This asset is not defined: " + assetID);
 			if(!_assetBank[assetID])throw new Error("[DataLoadError] AssetID: " + assetID + " has not been loaded yet");
-			if(!_assetList[assetID].category == category)throw new Error("[DataLoadError] AssetID: " + assetID + " is not an XML");
+			if(!_assetList[assetID].category == category)throw new Error("[DataLoadError] AssetID: " + assetID + " is not a " + category);
 		}
 		
 	}

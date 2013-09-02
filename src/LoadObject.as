@@ -11,10 +11,6 @@ package
 
 	public class LoadObject
 	{
-		
-		public static const TYPE_DISPLAY:String = "display";
-		
-		
 		private var _onProgress:Function;
 		private var _onComplete:Function;
 		private var _onError:Function;
