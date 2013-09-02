@@ -9,6 +9,7 @@ package
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
+	import flash.media.Sound;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
@@ -29,8 +30,16 @@ package
 		 * @param	assetListURL - URL of the xml manifest containing all assets that can be loaded
 		 * @param	callback - onComplete callback. Executes when the manifest xml has succesfully loaded
 		 */
-		public static function startup(assetListURL:String, callback:Function):void{
-			loadAssetsXML(assetListURL, callback);
+		public static function startup(assetListURL:String = null, callback:Function = null):void {
+			trace("[DataLoad] is starting up...");
+			
+			_assetBank = new Dictionary;
+			_assetList = new Dictionary;
+			
+			if (assetListURL != null) {
+				loadAssetsXML(assetListURL, callback);
+			}
+			
 		}
 		
 		/**
@@ -92,7 +101,7 @@ package
 			
 			var urlLoader:URLLoader = new URLLoader;
 			var urlRequest:URLRequest = new URLRequest(url);
-			trace("[DataLoad] is starting up...");
+			
 			trace("[DataLoad] Loading up assets XML from: " + url);
 			urlLoader.addEventListener(Event.COMPLETE, loaded);
 			urlLoader.load(urlRequest);
@@ -119,7 +128,7 @@ package
 				urlLoader.removeEventListener(Event.COMPLETE, loaded);
 				urlLoader = null;
 				trace("[DataLoad] Startup completed succesfully.");
-				if(callback)callback();
+				if(callback != null)callback();
 			}
 		}
 		
@@ -152,7 +161,7 @@ package
 		public static function loadAssets(assets:Vector.<AssetInfo>, onComplete:Function = null, onProgress:Function = null, onError:Function = null):LoadObject{
 			// TODO: Make "assets" ID based.
 			var iter:int = 0;
-			var loadObj = new LoadObject(checkNextAsset, onProgress, onError);
+			var loadObj:LoadObject = new LoadObject(checkNextAsset, onProgress, onError);
 			trace("[DataLoad] Starting batch load of " + assets.length + " items...");
 			loadObj.setNumItems(assets.length);
 			load(assets[iter],loadObj);
@@ -184,10 +193,20 @@ package
 			return loadAssets(assets, onComplete, onProgress, onError);
 		}
 		
+		/**
+		 * Loads a file from the given URL. Will cache the asset data so that the file can easily be loaded by ID later on
+		 * @param	url -- File path to the given file
+		 * @param	type -- Type of file (Use DataType class for apropriate constants)
+		 * @param	category -- Category of file (Use DataCategory class for apropriate constants)
+		 * @param	uid -- Unique ID. If id already exists it will attempt to load the cached data
+		 * @param	onComplete -- Complete callback with a LoaderObject param
+		 * @param	onProgress -- Progress callback with a LoaderObject param
+		 * @param	onError -- Error callback with a IOErrorEvent param
+		 * @return
+		 */
 		public static function loadFile(url:String, type:String, category:String, uid:String, onComplete:Function = null, onProgress:Function = null , onError:Function = null):LoadObject {
 			if (_assetList[uid]) {
-				loadAsset(uid, onComplete, onProgress, onError);
-				return;
+				return loadAsset(uid, onComplete, onProgress, onError);
 			}
 			
 			var assetInfo:AssetInfo = new AssetInfo
@@ -195,7 +214,7 @@ package
 			assetInfo.type = type;
 			assetInfo.category = category;
 			assetInfo.id = uid;
-			_assetList[id] = assetInfo;
+			_assetList[uid] = assetInfo;
 			return loadAsset(uid, onComplete, onProgress, onError);
 		}
 		
@@ -269,7 +288,7 @@ package
 		 * @return
 		 */
 		public static function getImage(assetID:String):DisplayObject{
-			validateAsset(assetID, "image");
+			validateAsset(assetID, DataCategory.IMAGE);
 			
 			var img:DisplayObject 	= _assetBank[assetID];
 			var data:BitmapData   	= new BitmapData(img.width, img.height, true);
@@ -290,7 +309,7 @@ package
 		 * @return
 		 */
 		public static function getBitmap(assetID:String):Bitmap{
-			validateAsset(assetID, "image");
+			validateAsset(assetID, DataCategory.IMAGE);
 			
 			var img:DisplayObject 	= _assetBank[assetID];
 			var data:BitmapData   	= new BitmapData(img.width, img.height, true);
@@ -308,7 +327,7 @@ package
 		 * @return
 		 */
 		public static function getImageData(assetID:String):BitmapData{
-			validateAsset(assetID, "image");
+			validateAsset(assetID, DataCategory.IMAGE);
 			
 			var img:DisplayObject 	= _assetBank[assetID];
 			var data:BitmapData   	= new BitmapData(img.width, img.height, true);
@@ -323,7 +342,7 @@ package
 		 * @return
 		 */
 		public static function getSwf(assetID:String):*{
-			validateAsset(assetID, "swf");
+			validateAsset(assetID, DataCategory.SWF);
 			var swf:*      = _assetBank[assetID];
 			return swf;
 		}
@@ -335,7 +354,7 @@ package
 		 * @return
 		 */
 		public static function getClass(assetID:String, linkageName:String):Class{
-			validateAsset(assetID, "swf");
+			validateAsset(assetID, DataCategory.SWF);
 			var asset:AssetInfo = _assetList[assetID];
 			var cls:Class       = asset.appDomain.getDefinition(linkageName) as Class;
 			
@@ -348,8 +367,18 @@ package
 		 * @return
 		 */
 		public static function getXML(assetID:String):XML{
-			validateAsset(assetID, "xml");
+			validateAsset(assetID, DataCategory.XML);
 			return XML(_assetBank[assetID]);
+		}
+		
+		/**
+		 * Returns a loaded sound file
+		 * @param	assetID
+		 * @return
+		 */
+		public static function getSound(assetID:String):Sound {
+			validateAsset(assetID, DataCategory.MP3);
+			return Sound(_assetBank[assetID]);
 		}
 		
 		/**

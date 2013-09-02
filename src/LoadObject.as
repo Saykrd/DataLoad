@@ -42,17 +42,17 @@ package
 			
 			_assetProgress = e.bytesLoaded / e.bytesTotal * 100;
 			_batchProgress = _itemsLoaded / _itemsToLoad + _assetProgress / _itemsToLoad;
-			if(_onProgress)_onProgress(this);
+			if(_onProgress != null)_onProgress(this);
 		}
 		
 		public function error(e:IOErrorEvent):void{
 			trace("error", e);
-			if(_onError)_onError(e);
+			if(_onError != null)_onError(e);
 		}
 		
 		public function complete(e:Event):void{
 			trace("complete");
-			if(_onComplete)_onComplete(this);
+			if(_onComplete != null)_onComplete(this);
 		}
 		
 		public function assetLoaded():void{
