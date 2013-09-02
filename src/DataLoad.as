@@ -227,6 +227,7 @@ package
 		private static function load(asset:AssetInfo, loadObj:LoadObject):void{
 			var loader:Loader;
 			var urlLoader:URLLoader;
+			var soundLoader:Sound;
 			var req:URLRequest  = new URLRequest(asset.url);
 			
 			
@@ -239,6 +240,15 @@ package
 				loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onError);
 				
 				loader.load(req);
+			} else if (asset.type == DataType.SOUND) {
+				soundLoader = new Sound;
+				
+				soundLoader.addEventListener(ProgressEvent.PROGRESS, loadObj.progress);
+				soundLoader.addEventListener(Event.COMPLETE, onComplete);
+				soundLoader.addEventListener(IOErrorEvent.IO_ERROR, onError);
+				
+				soundLoader.load(req);
+				
 			} else {
 				urlLoader = new URLLoader;
 				urlLoader.addEventListener(ProgressEvent.PROGRESS, loadObj.progress);
@@ -263,15 +273,32 @@ package
 				}
 				
 				if(loader){
-					
 					loader.contentLoaderInfo.removeEventListener(ProgressEvent.PROGRESS, loadObj.progress);
 					loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onComplete);
 					loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loadObj.error);
 				}
 				
+				if (soundLoader) {
+					soundLoader.removeEventListener(ProgressEvent.PROGRESS, loadObj.progress);
+					soundLoader.removeEventListener(Event.COMPLETE, onComplete);
+					soundLoader.removeEventListener(IOErrorEvent.IO_ERROR, onError);
+				}
+				
 				loadObj.assetLoaded();
 				asset.appDomain = asset.type == DataType.DISPLAY ?  e.currentTarget.applicationDomain : null;
-				_assetBank[asset.id] = asset.type == DataType.DISPLAY ? e.currentTarget.content : e.currentTarget.data;
+				
+				switch(asset.type) {
+					case DataType.DISPLAY:
+						_assetBank[asset.id] = e.currentTarget.content;
+						break;
+					case DataType.SOUND:
+						_assetBank[asset.id] = soundLoader;
+						break
+					default:
+						_assetBank[asset.id] = e.currentTarget.data;
+						break;
+				}
+				
 				loadObj.complete(e);
 			}
 		}
