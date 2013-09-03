@@ -140,7 +140,7 @@ package
 		 * @param	onError    - Error handler
 		 * @return LoadObject - Tracker object that reflects the status of the load
 		 */
-		public static function loadAsset(assetID:String, onComplete:Function  = null, onProgress:Function = null, onError:Function = null):LoadObject{
+		public static function loadAssetByID(assetID:String, onComplete:Function  = null, onProgress:Function = null, onError:Function = null):LoadObject{
 			if(!_assetList[assetID]) throw new Error("[DataLoadError] This asset is not defined: " + assetID);
 			var loadObj:LoadObject = new LoadObject(onComplete, onProgress, onError);
 			var asset:AssetInfo = _assetList[assetID];
@@ -206,7 +206,7 @@ package
 		 */
 		public static function loadFile(url:String, type:String, category:String, uid:String, onComplete:Function = null, onProgress:Function = null , onError:Function = null):LoadObject {
 			if (_assetList[uid]) {
-				return loadAsset(uid, onComplete, onProgress, onError);
+				return loadAssetByID(uid, onComplete, onProgress, onError);
 			}
 			
 			var assetInfo:AssetInfo = new AssetInfo
@@ -215,7 +215,7 @@ package
 			assetInfo.category = category;
 			assetInfo.id = uid;
 			_assetList[uid] = assetInfo;
-			return loadAsset(uid, onComplete, onProgress, onError);
+			return loadAssetByID(uid, onComplete, onProgress, onError);
 		}
 		
 		
